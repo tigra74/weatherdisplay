@@ -14,9 +14,11 @@
 
 void setup_pins()
 {
+  PRINT("INFO: Setup pins... ");
   pinMode(BUILTIN_LED_PIN, OUTPUT);
   pinMode(FLASH_CS_PIN, OUTPUT);
   pinMode(VOLTAGE_PIN, INPUT);
+  PRINTLN("OK");
 }
 
 void led_on()
@@ -41,10 +43,10 @@ void disable_flash_memory()
 
 uint8_t start_wifi()
 {
-  Serial.print("\r\nConnecting to: ");
-  Serial.print(Config::getSsid());
-  Serial.print(":");
-  Serial.println(Config::getPassword());
+  PRINT("INFO: Connecting to Wi-Fi... ");
+  PRINT(Config::getSsid());
+  PRINT(":");
+  PRINTLN(Config::getPassword());
   IPAddress dns(8, 8, 8, 8); // Google DNS
   WiFi.disconnect();
   WiFi.mode(WIFI_STA); // switch off AP
@@ -70,12 +72,12 @@ uint8_t start_wifi()
   if (connectionStatus == WL_CONNECTED)
   {
     int wifi_signal = WiFi.RSSI(); // Get Wifi Signal strength now, because the WiFi will be turned off to save power!
-    Serial.print("INFO: WiFi strength - ");
-    Serial.println(wifi_signal);
-    Serial.println("INFO: WiFi connected at: " + WiFi.localIP().toString());
+    PRINT("INFO: WiFi strength - ");
+    PRINTLN(wifi_signal);
+    PRINTLN("INFO: WiFi connected at: " + WiFi.localIP().toString());
   }
   else
-    Serial.println("ERROR: WiFi connection *** FAILED ***");
+    PRINTLN("ERROR: WiFi connection *** FAILED ***");
   return connectionStatus;
 }
 
@@ -91,9 +93,9 @@ void begin_sleep()
   long SleepTimer = (SLEEP_DURATION_MIN * 60 - ((CurrentMin % SLEEP_DURATION_MIN) * 60 + CurrentSec)); //Some ESP32 are too fast to maintain accurate time
   esp_sleep_enable_timer_wakeup((SleepTimer + 20) * 1000000LL);                                        // Added 20-sec extra delay to cater for slow ESP32 RTC timers
 
-  Serial.println("INFO: Entering " + String(SleepTimer) + "-secs of sleep time");
-  Serial.println("INFO: Awake for : " + String((millis() - StartTime) / 1000.0, 3) + "-secs");
-  Serial.println("INFO: Starting deep-sleep period...");
+  PRINTLN("INFO: Entering " + String(SleepTimer) + "-secs of sleep time");
+  PRINTLN("INFO: Awake for : " + String((millis() - StartTime) / 1000.0, 3) + "-secs");
+  PRINTLN("INFO: Starting deep-sleep period...");
 
   gpio_deep_sleep_hold_en();
   esp_deep_sleep_start(); // Sleep for e.g. 30 minutes
@@ -101,18 +103,19 @@ void begin_sleep()
 
 bool update_local_time()
 {
+  PRINT("INFO: Updating local time... ");
   struct tm timeinfo;
   char time_output[30], day_output[30], update_time[30];
   while (!getLocalTime(&timeinfo, 5000))
   { // Wait for 5-sec for time to synchronise
-    Serial.println("ERROR: Failed to obtain time");
+    PRINTLN("ERROR: Failed to obtain time");
     return false;
   }
   CurrentHour = timeinfo.tm_hour;
   CurrentMin = timeinfo.tm_min;
   CurrentSec = timeinfo.tm_sec;
   //See http://www.cplusplus.com/reference/ctime/strftime/
-  Serial.println(&timeinfo, "%a %b %d %Y   %H:%M"); // Displays: Saturday, June 24 2017 14:05:49
+  PRINT(&timeinfo, "%a %b %d %Y %H:%M"); // Displays: Saturday, June 24 2017 14:05:49
   if (Config::getUnits() == "M")
   {
     if ((Config::getLanguage() == "CZ") || (Config::getLanguage() == "DE") || (Config::getLanguage() == "NL") || (Config::getLanguage() == "PL") || (Config::getLanguage() == "GR"))
@@ -134,20 +137,24 @@ bool update_local_time()
   }
   date_str = day_output;
   time_str = time_output;
+  PRINTLN(" DONE");
   return true;
 }
 
 bool setup_time()
 {
+  PRINT("INFO: Setup time... ");
   configTime(0, 3600, Config::getNtpServer().c_str(), "time.nist.gov"); //(gmtOffset_sec, daylightOffset_sec, ntpServer)
   setenv("TZ", Config::getTimezone().c_str(), 1);                       //setenv()adds the "TZ" variable to the environment with a value TimeZone, only used if set to 1, 0 means no change
   tzset();                                                              // Set the TZ environment variable
   delay(100);
+  PRINTLN("DONE");
   return update_local_time();
 }
 
 float read_battery_voltage()
 {
+  PRINT("INFO: Read battery voltage... ");
   float voltageRaw = 0;
   for (int i = 0; i < 10; i++)
   {
@@ -155,6 +162,7 @@ float read_battery_voltage()
     delay(10);
   }
   voltageRaw /= 10;
+  PRINTLN("DONE");
   return voltageRaw;
 }
 

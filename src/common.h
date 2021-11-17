@@ -26,6 +26,12 @@ int CurrentSec = 0;
 
 long    StartTime = 0;
 
+enum RequestType
+{
+  WEATHER,
+  FORECAST
+};
+
 float mm_to_inches(float value_mm)
 {
   return 0.0393701 * value_mm;

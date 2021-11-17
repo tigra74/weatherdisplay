@@ -43,7 +43,8 @@ String wind_deg_to_direction(float winddirection);
 
 Bounds draw_string(int x, int y, String text, AlignmentType alignment);
 void draw_string_max_width(int x, int y, unsigned int text_width, String text, AlignmentType alignment);
-Bounds draw_temp(int x, int y, int size, float temp, const GFXfont *font);
+Bounds draw_temp(int x, int y, int size, float temp);
+Bounds draw_temp(int x, int y, int size, float temp, AlignmentType alignment);
 
 
 void rain(DrawContext ctx);
@@ -70,6 +71,20 @@ void arrow(int x, int y, int asize, float aangle, int pwidth, int plength);
 
 String convert_unix_time(int unix_time);
 
+
+void draw_error_msg(String text) {
+  int x = 20;
+  int y = 20;
+  int w = SCREEN_WIDTH - 2 * x;
+  int h = SCREEN_HEIGHT - 2 * y;
+  display.fillRect(x + 6, y + 6, w, h, FG_COLOR);
+  display.fillRect(x, y, w, h, FG_COLOR);
+  display.fillRect(x + 1, y + 1, w - 2, h - 2, BG_COLOR);
+  display.setFont(&arial7pt7b);
+  Bounds b = draw_string(SCREEN_WIDTH / 2, y + 32, "ERROR", CENTER);
+  draw_string(SCREEN_WIDTH / 2, b.y + b.h + 25, text, CENTER);
+}
+
 void draw_weather()
 {
   #ifdef TEST_DATA
@@ -86,30 +101,27 @@ void draw_weather()
   WxForecast[5].Icon = "50d";
   WxForecast[6].Icon = "11d";
   #endif
-
-  Serial.println("Display Weather");
+  PRINTLN("INFO: Draw Weather");
   draw_heading_section();
   draw_main_weather_section();
 
-  int forecastY = 102;
-  int forecastW = 42;
+  int forecastY = 100;
+  int forecastW = 43;
 
+  display.drawLine(0, forecastY - 24, SCREEN_WIDTH, forecastY - 24, FG_COLOR);
   for (int i = 0; i < MAX_READINGS; i++)
   {
-    draw_forecast(i * forecastW, forecastY, forecastW, 46, i + 1); // First  3hr forecast box
+    draw_forecast(i * forecastW - 6, forecastY, forecastW, 46, i + 1); // First  3hr forecast box
   }
   draw_battery(70, 12);
-  display_update();
 }
 
 void draw_forecast(const int x, const int y, const int w, const int h, const int index)
 {
-  draw_wx_icon(x + 23, y + 1, index, SmallIcon);
+  draw_wx_icon(x + 21, y + 1, index, SmallIcon);
   display.setFont(&FORECAST_FONT);
   draw_string(x + w / 2, y - 14, WxForecast[index].Period.substring(11, 16), CENTER);
-  Bounds b = draw_temp(x + 4, y + 19, 1, WxForecast[index].High, &FORECAST_FONT);
-  b = draw_string(b.x + b.w + 1, y + 19, "/", LEFT);
-  draw_temp(b.x + b.w + 1, y + 19, 1, WxForecast[index].Low, &FORECAST_FONT);
+  draw_temp(x + w / 2, y + 20, 1, WxForecast[index].Temperature, CENTER);
   display.drawLine(x + w, y - 24, x + w, y - 24 + h, FG_COLOR);
 }
 
@@ -126,18 +138,25 @@ void draw_main_weather_section()
   draw_wx_icon(162, 49, 0, LargeIcon);
   display.setFont(&CITY_FONT);
   draw_string(0, 26, Config::getCity(), LEFT);
-  draw_temp(0, 53, 2, WxConditions[0].Temperature, &TEMP_FONT);
+  display.setFont(&TEMP_FONT);
+  draw_temp(0, 53, 2, WxConditions[0].Temperature);
   display.setFont(&WEATHER_FONT);
   draw_pressure_trend(0, 64, WxConditions[0].Pressure, WxConditions[0].Trend);
   draw_humidity(60, 72, WxConditions[0].Humidity);
   draw_wind(222, 44, WxConditions[0].Winddir + 180, WxConditions[0].Windspeed);
-  display.drawLine(0, 77, SCREEN_WIDTH, 77, FG_COLOR);
 }
 
-Bounds draw_temp(int x, int y, int size, float temp, const GFXfont *font)
+Bounds draw_temp(int x, int y, int size, float temp)
 {
-  display.setFont(font);
   Bounds bounds = draw_string(x, y, String(temp, 0), LEFT);
+  display.drawCircle(bounds.x + 1.2 * bounds.w, bounds.y + size, size, FG_COLOR);
+  bounds.w = 1.2 * bounds.w + size;
+  return bounds;
+}
+
+Bounds draw_temp(int x, int y, int size, float temp, AlignmentType align)
+{
+  Bounds bounds = draw_string(x, y, String(temp, 0), align);
   display.drawCircle(bounds.x + 1.2 * bounds.w, bounds.y + size, size, FG_COLOR);
   bounds.w = 1.2 * bounds.w + size;
   return bounds;
@@ -259,7 +278,6 @@ void draw_humidity(int x, int y, float hunidity)
 void draw_wx_icon(const int x, const int y, const int index, const bool IconSize)
 {
   String IconName = String(WxForecast[index].Icon);
-  Serial.println("Icon name: " + IconName);
   
   DrawContext ctx;
   ctx.index = index;
@@ -305,8 +323,8 @@ void draw_battery(const int x, int y)
   float voltage = VOLTAGE_DIVIDER_RATIO * voltageRaw / 4095.0;
   if (voltage > 1)
   { // Only display if there is a valid reading
-    Serial.println("Voltage Raw = " + String(voltageRaw));
-    Serial.println("Voltage = " + String(voltage));
+    PRINTLN("INFO: Voltage Raw = " + String(voltageRaw));
+    PRINTLN("INFO: Voltage = " + String(voltage));
     
     if (voltage >= maxLiPoV)
       percentage = 1;
@@ -648,32 +666,6 @@ Bounds draw_string(int x, int y, String text, AlignmentType alignment)
   b.h = h;
   display.print(text);
   return b;
-}
-
-void draw_string_max_width(int x, int y, unsigned int text_width, String text, AlignmentType alignment)
-{
-  int16_t x1, y1; //the bounds of x,y and w and h of the variable 'text' in pixels.
-  uint16_t w, h;
-  display.getTextBounds(text, x, y, &x1, &y1, &w, &h);
-  if (alignment == RIGHT)
-    x = x - w;
-  if (alignment == CENTER)
-    x = x - w / 2;
-  display.setCursor(x, y);
-  if (text.length() > text_width * 2)
-  {
-    display.setFont(&DEFALUT_FONT);
-    text_width = 42;
-    y = y - 3;
-  }
-  display.println(text.substring(0, text_width));
-  if (text.length() > text_width)
-  {
-    display.setCursor(x, y + h + 15);
-    String secondLine = text.substring(text_width);
-    secondLine.trim(); // Remove any leading spaces
-    display.println(secondLine);
-  }
 }
 
 String convert_unix_time(int unix_time)

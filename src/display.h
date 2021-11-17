@@ -9,7 +9,8 @@
 #include <GxEPD.h>
 #include <GxIO/GxIO_SPI/GxIO_SPI.h>
 #include <GxIO/GxIO.h>
-#include <GxGDEH0213B73/GxGDEH0213B73.h>
+#include <GxDEPG0213BN/GxDEPG0213BN.h>
+// #include <GxGDEH0213B73/GxGDEH0213B73.h>
 
 #include "fonts/arial5pt7b.h"
 #include "fonts/arial6pt7b.h"
@@ -28,13 +29,13 @@ enum AlignmentType
   CENTER
 };
 
-#define EPD_BUSY 4  // to EPD BUSY
-#define EPD_CS 5    // to EPD CS
-#define EPD_RST 16  // to EPD RST
-#define EPD_DC 17   // to EPD DC
-#define EPD_SCK 18  // to EPD CLK
-#define EPD_MISO -1 // MISO is not used, as no data from display
-#define EPD_MOSI 23 // to EPD DIN
+#define EPD_BUSY  4  // to EPD BUSY
+#define EPD_CS    5  // to EPD CS
+#define EPD_RST  16  // to EPD RST
+#define EPD_DC   17  // to EPD DC
+#define EPD_SCK  18  // to EPD CLK
+#define EPD_MISO -1  // MISO is not used, as no data from display
+#define EPD_MOSI 23  // to EPD DIN
 
 #define DEFALUT_FONT arial6pt7b
 #define CITY_FONT arial9pt7b
@@ -71,14 +72,14 @@ GxEPD_Class display(io, EPD_RST, EPD_BUSY);
 
 void display_init()
 {
-  Serial.println("Begin InitialiseDisplay...");
+  PRINT("INFO: Begin display initialisation ...");
   SPI.begin(EPD_SCK, EPD_MISO, EPD_MOSI, EPD_CS);
-  display.init(115200);
+  display.init(0);
   display.setRotation(1); // Use 1 or 3 for landscape modes
   display.setTextColor(FG_COLOR);
   display.setFont(&DEFALUT_FONT);
   display.fillScreen(BG_COLOR);
-  Serial.println("... End InitialiseDisplay");
+  PRINTLN("DONE");
 }
 
 void display_power_off()
