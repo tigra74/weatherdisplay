@@ -35,7 +35,7 @@ void draw_forecast(int x, int y, int w, int h, int index);
 void draw_battery(int x, int y);
 void draw_wx_icon(int x, int y, int index, bool IconSize);
 void draw_pressure_trend(int x, int y, float pressure, String slope);
-void draw_humidity(int x, int y, float hunidity);
+void draw_humidity(int x, int y, float humidity);
 void draw_wind(int x, int y, float angle, float windspeed);
 void draw_moon(int x, int y, int dd, int mm, int yy, String hemisphere);
 
@@ -141,8 +141,8 @@ void draw_main_weather_section()
   display.setFont(&TEMP_FONT);
   draw_temp(0, 53, 2, WxConditions[0].Temperature);
   display.setFont(&WEATHER_FONT);
-  draw_pressure_trend(0, 64, WxConditions[0].Pressure, WxConditions[0].Trend);
-  draw_humidity(60, 72, WxConditions[0].Humidity);
+  draw_pressure_trend(0, 72, WxConditions[0].Pressure, WxConditions[0].Trend);
+  draw_humidity(78, 72, WxConditions[0].Humidity);
   draw_wind(222, 44, WxConditions[0].Winddir + 180, WxConditions[0].Windspeed);
 }
 
@@ -249,30 +249,50 @@ void arrow(int x, int y, int asize, float aangle, int pwidth, int plength)
 //#########################################################################################
 void draw_pressure_trend(int x, int y, float pressure, String slope)
 {
+  y += 1;
+  display.fillRect(x + 3, y - 9, 9, 10, FG_COLOR);
+  display.fillTriangle(x, y, x + 3, y, x + 3, y - 9, FG_COLOR);
+  display.fillTriangle(x + 11, y, x + 14, y, x + 11, y - 9, FG_COLOR);
+  display.drawCircle(x + 7, y - 10, 2, FG_COLOR);
+  
+  y -= 1;
+  // Draw [P]
+  display.drawLine(x + 6, y - 1, x + 6, y - 6, BG_COLOR);
+  display.drawLine(x + 6, y - 6, x + 8, y - 6, BG_COLOR);
+  display.drawLine(x + 6, y - 3, x + 8, y - 3, BG_COLOR);
+  display.drawLine(x + 9, y - 5, x + 9, y - 4, BG_COLOR);
+
   float pressureHgMm = hPa_to_inHg(pressure);
-  draw_string(x, y + 8, String(pressureHgMm, 0) + "mm", LEFT);
-  x = x + 43;
-  y = y + 3;
+  Bounds b = draw_string(x + 17, y, String(pressureHgMm, 0) + "mm", LEFT);
+  
+  x += b.x + b.w + 3;
+
   if (slope == "+")
   {
-    display.drawLine(x, y, x + 4, y - 4, FG_COLOR);
-    display.drawLine(x + 4, y - 4, x + 8, y, FG_COLOR);
-  }
-  else if (slope == "0")
-  {
-    display.drawLine(x + 3, y - 4, x + 8, y, FG_COLOR);
-    display.drawLine(x + 3, y + 4, x + 8, y, FG_COLOR);
+    display.drawLine(x, y - 5, x + 3, y - 8, FG_COLOR);
+    display.drawLine(x + 3, y - 8, x + 6, y - 5, FG_COLOR);
+    y += 4;
+    display.drawLine(x, y - 5, x + 3, y - 8, FG_COLOR);
+    display.drawLine(x + 3, y - 8, x + 6, y - 5, FG_COLOR);
   }
   else if (slope == "-")
   {
-    display.drawLine(x, y, x + 4, y + 4, FG_COLOR);
-    display.drawLine(x + 4, y + 4, x + 8, y, FG_COLOR);
+    display.drawLine(x, y - 8, x + 3, y - 5, FG_COLOR);
+    display.drawLine(x + 3, y - 5, x + 6, y - 8, FG_COLOR);
+    y += 4;
+    display.drawLine(x, y - 8, x + 3, y - 5, FG_COLOR);
+    display.drawLine(x + 3, y - 5, x + 6, y - 8, FG_COLOR);
   }
 }
 //#########################################################################################
-void draw_humidity(int x, int y, float hunidity)
+void draw_humidity(int x, int y, float humidity)
 {
-  draw_string(x, y, String(hunidity, 0) + "%", LEFT);
+  display.fillCircle(x + 3, y - 3, 4, FG_COLOR);
+  display.fillTriangle(x, y - 3, x + 6, y - 3, x + 3, y - 11, FG_COLOR);
+  display.drawLine(x + 1, y - 1, x + 5, y - 5, BG_COLOR);
+  display.drawPixel(x + 2, y - 5, BG_COLOR);
+  display.drawPixel(x + 4, y - 1, BG_COLOR);
+  draw_string(x + 10, y, String(humidity, 0) + "%", LEFT);
 }
 //#########################################################################################
 void draw_wx_icon(const int x, const int y, const int index, const bool IconSize)

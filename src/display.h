@@ -9,8 +9,13 @@
 #include <GxEPD.h>
 #include <GxIO/GxIO_SPI/GxIO_SPI.h>
 #include <GxIO/GxIO.h>
-#include <GxDEPG0213BN/GxDEPG0213BN.h>
-// #include <GxGDEH0213B73/GxGDEH0213B73.h>
+// #include <GxGDEW0213Z16/GxGDEW0213Z16.h>  // 2.13" b/w/r form GoodDisplay
+// #include <GxGDE0213B1/GxGDE0213B1.h>      // 2.13" b/w  old panel , form GoodDisplay
+// #include <GxGDEH0213B72/GxGDEH0213B72.h>  // 2.13" b/w  old panel , form GoodDisplay
+// #include <GxGDEH0213B73/GxGDEH0213B73.h>  // 2.13" b/w  old panel , form GoodDisplay
+// #include <GxGDEM0213B74/GxGDEM0213B74.h>  // 2.13" b/w  form GoodDisplay 4-color
+// #include <GxGDEW0213M21/GxGDEW0213M21.h>  // 2.13" b/w Ultra wide temperature , form GoodDisplay
+#include <GxDEPG0213BN/GxDEPG0213BN.h>    // 2.13" b/w  form DKE GROUP
 
 #include "fonts/arial5pt7b.h"
 #include "fonts/arial6pt7b.h"
