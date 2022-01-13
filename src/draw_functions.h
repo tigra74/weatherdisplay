@@ -68,6 +68,7 @@ void addtstorm(DrawContext ctx);
 void addsnow(DrawContext ctx);
 
 void arrow(int x, int y, int asize, float aangle, int pwidth, int plength);
+void p_arrow(int x, int y, int asize, float aangle, int pwidth, int plength);
 
 String convert_unix_time(int unix_time);
 
@@ -108,11 +109,13 @@ void draw_weather()
   int forecastY = 100;
   int forecastW = 43;
 
+/*
   display.drawLine(0, forecastY - 24, SCREEN_WIDTH, forecastY - 24, FG_COLOR);
   for (int i = 0; i < MAX_READINGS; i++)
   {
     draw_forecast(i * forecastW - 6, forecastY, forecastW, 46, i + 1); // First  3hr forecast box
   }
+*/
   draw_battery(70, 12);
 }
 
@@ -135,21 +138,20 @@ void draw_heading_section()
 
 void draw_main_weather_section()
 {
-  draw_wx_icon(162, 49, 0, LargeIcon);
+  draw_wx_icon(30, 49, 0, LargeIcon);
   display.setFont(&CITY_FONT);
-  draw_string(0, 26, Config::getCity(), LEFT);
+  draw_string(10, 115, Config::getCity(), LEFT);
   display.setFont(&TEMP_FONT);
-  draw_temp(0, 53, 2, WxConditions[0].Temperature);
+  draw_temp(180, 115, 2, WxConditions[0].Temperature, RIGHT);
   display.setFont(&WEATHER_FONT);
-  draw_pressure_trend(0, 72, WxConditions[0].Pressure, WxConditions[0].Trend);
-  draw_humidity(78, 72, WxConditions[0].Humidity);
-  draw_wind(222, 44, WxConditions[0].Winddir + 180, WxConditions[0].Windspeed);
+  draw_humidity(200, 115, WxConditions[0].Humidity);
+  draw_wind(222, 54, WxConditions[0].Winddir + 180, WxConditions[0].Windspeed);
 }
 
 Bounds draw_temp(int x, int y, int size, float temp)
 {
   Bounds bounds = draw_string(x, y, String(temp, 0), LEFT);
-  display.drawCircle(bounds.x + 1.2 * bounds.w, bounds.y + size, size, FG_COLOR);
+//  display.drawCircle(bounds.x + 1.2 * bounds.w, bounds.y + size, size, FG_COLOR);
   bounds.w = 1.2 * bounds.w + size;
   return bounds;
 }
@@ -157,28 +159,33 @@ Bounds draw_temp(int x, int y, int size, float temp)
 Bounds draw_temp(int x, int y, int size, float temp, AlignmentType align)
 {
   Bounds bounds = draw_string(x, y, String(temp, 0), align);
-  display.drawCircle(bounds.x + 1.2 * bounds.w, bounds.y + size, size, FG_COLOR);
+//  display.drawCircle(bounds.x + 1.2 * bounds.w, bounds.y + size, size, FG_COLOR);
   bounds.w = 1.2 * bounds.w + size;
   return bounds;
 }
 
 void draw_wind(int x, int y, float angle, float windspeed)
 {
-#define Cradius 15
+#define Cradius 17
+/*  
   float dx = Cradius * cos((angle - 90) * PI / 180) + x; // calculate X position
   float dy = Cradius * sin((angle - 90) * PI / 180) + y; // calculate Y position
   arrow(x, y, Cradius - 3, angle, 10, 12);               // Show wind direction on outer circle
-  display.drawCircle(x, y, Cradius + 2, FG_COLOR);
-  display.drawCircle(x, y, Cradius + 3, FG_COLOR);
+*/
+  p_arrow(x, y, Cradius, angle, int(windspeed+0.5), Cradius*2);               // Show wind direction on outer circle
+//  p_arrow(x, y, Cradius, 90, 10, Cradius*2);               // TEST
+//  p_arrow(x, y, Cradius, 0, 1, Cradius*2);               // TEST
+/* 
   for (int m = 0; m < 360; m = m + 45)
   {
     dx = Cradius * cos(m * PI / 180); // calculate X position
     dy = Cradius * sin(m * PI / 180); // calculate Y position
     display.drawLine(x + dx, y + dy, x + dx * 0.8, y + dy * 0.8, FG_COLOR);
   }
+ */
   display.setFont(&WEATHER_FONT);
-  draw_string(x, y + Cradius + 15, wind_deg_to_direction(angle + 180), CENTER);
-  draw_string(x, y - Cradius - 7, String(windspeed, 1) + (Config::isMetric() ? " m/s" : " mph"), CENTER);
+  draw_string(x, y + Cradius + 18, wind_deg_to_direction(angle + 180), CENTER);
+  draw_string(x, y - Cradius - 7, String(windspeed, 1), CENTER);
 }
 //#########################################################################################
 String wind_deg_to_direction(float winddirection)
@@ -247,9 +254,27 @@ void arrow(int x, int y, int asize, float aangle, int pwidth, int plength)
   display.fillTriangle(xx1, yy1, xx3, yy3, xx2, yy2, FG_COLOR);
 }
 //#########################################################################################
+void p_arrow(int x, int y, int asize, float aangle, int pwidth, int plength)
+{
+  // x,y is the centre position of the arrow and asize is the radius out from the x,y position
+  // aangle is angle to draw the pointer at e.g. at 135° for NW
+  // pwidth is the pointer width in degrees
+  // plength is the pointer length in pixels
+  float dx = asize * cos((aangle - 90) * PI / 180); // calculate X position
+  float dy = asize * sin((aangle - 90) * PI / 180); // calculate Y position
+  float dx1 = (asize - pwidth) * cos((aangle + 90) * PI / 180);
+  float dy1 = (asize - pwidth) * sin((aangle + 90) * PI / 180);
+  float dx2 = asize * cos((aangle + pwidth * 3 + 90) * PI / 180);
+  float dy2 = asize * sin((aangle + pwidth * 3 + 90) * PI / 180);
+  float dx3 = asize * cos((aangle - pwidth * 3 + 90) * PI / 180);
+  float dy3 = asize * sin((aangle - pwidth * 3 + 90) * PI / 180);
+  display.fillTriangle(int(x + dx + 0.5), int(y + dy + 0.5), int(x + dx1 + 0.5), int(y + dy1 + 0.5), int(x + dx2 + 0.5), int(y + dy2 + 0.5), FG_COLOR);
+  display.fillTriangle(int(x + dx + 0.5), int(y + dy + 0.5), int(x + dx1 + 0.5), int(y + dy1 + 0.5), int(x + dx3 + 0.5), int(y + dy3 + 0.5), FG_COLOR);
+}
+//#########################################################################################
 void draw_pressure_trend(int x, int y, float pressure, String slope)
 {
-  y += 1;
+  // y += 1;
   display.fillRect(x + 3, y - 9, 9, 10, FG_COLOR);
   display.fillTriangle(x, y, x + 3, y, x + 3, y - 9, FG_COLOR);
   display.fillTriangle(x + 11, y, x + 14, y, x + 11, y - 9, FG_COLOR);
@@ -263,7 +288,8 @@ void draw_pressure_trend(int x, int y, float pressure, String slope)
   display.drawLine(x + 9, y - 5, x + 9, y - 4, BG_COLOR);
 
   float pressureHgMm = hPa_to_inHg(pressure);
-  Bounds b = draw_string(x + 17, y, String(pressureHgMm, 0) + "mm", LEFT);
+//  Bounds b = draw_string(x + 17, y, String(pressureHgMm, 0) + "mm", LEFT);
+  Bounds b = draw_string(x + 17, y + 1, String(pressureHgMm, 0), LEFT);
   
   x += b.x + b.w + 3;
 
@@ -287,12 +313,12 @@ void draw_pressure_trend(int x, int y, float pressure, String slope)
 //#########################################################################################
 void draw_humidity(int x, int y, float humidity)
 {
-  display.fillCircle(x + 3, y - 3, 4, FG_COLOR);
-  display.fillTriangle(x, y - 3, x + 6, y - 3, x + 3, y - 11, FG_COLOR);
+  display.fillCircle(x + 3, y - 3, 5, FG_COLOR);
+  display.fillTriangle(x, y - 4, x + 7, y - 4, x + 3, y - 14, FG_COLOR);
   display.drawLine(x + 1, y - 1, x + 5, y - 5, BG_COLOR);
   display.drawPixel(x + 2, y - 5, BG_COLOR);
   display.drawPixel(x + 4, y - 1, BG_COLOR);
-  draw_string(x + 10, y, String(humidity, 0) + "%", LEFT);
+  draw_string(x + 12, y, String(humidity, 0) + "%", LEFT);
 }
 //#########################################################################################
 void draw_wx_icon(const int x, const int y, const int index, const bool IconSize)
