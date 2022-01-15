@@ -264,10 +264,10 @@ void p_arrow(int x, int y, int asize, float aangle, int pwidth, int plength)
   float dy = asize * sin((aangle - 90) * PI / 180); // calculate Y position
   float dx1 = (asize - pwidth) * cos((aangle + 90) * PI / 180);
   float dy1 = (asize - pwidth) * sin((aangle + 90) * PI / 180);
-  float dx2 = asize * cos((aangle + pwidth * 3 + 90) * PI / 180);
-  float dy2 = asize * sin((aangle + pwidth * 3 + 90) * PI / 180);
-  float dx3 = asize * cos((aangle - pwidth * 3 + 90) * PI / 180);
-  float dy3 = asize * sin((aangle - pwidth * 3 + 90) * PI / 180);
+  float dx2 = asize * cos((aangle + pwidth * 5 + 90) * PI / 180);
+  float dy2 = asize * sin((aangle + pwidth * 5 + 90) * PI / 180);
+  float dx3 = asize * cos((aangle - pwidth * 5 + 90) * PI / 180);
+  float dy3 = asize * sin((aangle - pwidth * 5 + 90) * PI / 180);
   display.fillTriangle(int(x + dx + 0.5), int(y + dy + 0.5), int(x + dx1 + 0.5), int(y + dy1 + 0.5), int(x + dx2 + 0.5), int(y + dy2 + 0.5), FG_COLOR);
   display.fillTriangle(int(x + dx + 0.5), int(y + dy + 0.5), int(x + dx1 + 0.5), int(y + dy1 + 0.5), int(x + dx3 + 0.5), int(y + dy3 + 0.5), FG_COLOR);
 }
@@ -429,7 +429,7 @@ void addrain(DrawContext ctx)
   if (flakes > 5) flakes = 5;
 
   if (ctx.iconSize == LargeIcon)
-    display.setFont(&TEMP_FONT);
+    display.setFont(&WEATHER_FONT); // instead TEMP_FONT
   else
     display.setFont(&FORECAST_FONT);
 
@@ -458,7 +458,7 @@ void addsnow(DrawContext ctx)
   if (flakes > 4) flakes = 4;
 
   if (ctx.iconSize == LargeIcon)
-    display.setFont(&TEMP_FONT);
+    display.setFont(&WEATHER_FONT); // instead TEMP_FONT
   else
     display.setFont(&FORECAST_FONT);
 
